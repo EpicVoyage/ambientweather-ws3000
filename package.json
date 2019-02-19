@@ -1,0 +1,29 @@
+{
+    "author": "EpicVoyage <chris@epicvoyage.org>",
+    "dependencies": {
+        "usb": "^1.5.0"
+    },
+    "description": "Communicate with the Ambient Weather WS-3000 via USB",
+    "devDependencies": {
+        "console-stamp": "^0.2.7",
+        "chai": "^4.1.2",
+        "eslint": "^4.19.1",
+        "eslint-config-standard": "^11.0.0",
+        "eslint-plugin-i18n": "^1.2.0",
+        "eslint-plugin-import": "^2.11.0",
+        "eslint-plugin-node": "^6.0.1",
+        "eslint-plugin-promise": "^3.7.0",
+        "eslint-plugin-standard": "^3.1.0",
+        "mocha": "^5.2.0",
+        "nyc": "^12.0.2",
+        "sinon": "^5.1.0",
+        "xunit-file": "^1.0.0"
+    },
+    "license": "MIT",
+    "main": "ambientweather-ws3000.js",
+    "name": "ambientweather-ws3000",
+    "scripts": {
+        "test": "./node_modules/.bin/nyc --reporter=html --reporter=text ./node_modules/.bin/mocha test"
+    },
+    "version": "1.0.0"
+}
