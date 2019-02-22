@@ -27,6 +27,3 @@ let ws3000 = require('ambientweather-ws3000');
 let sensors = await ws3000.query(true);
 ```
 This turns on debug messages for libusb and prints all data sent or received from the WS-3000.
-
-# Todo
-* Temperatures below freezing will probably appear as really high temperatures.

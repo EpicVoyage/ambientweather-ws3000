@@ -12,6 +12,18 @@ const TEMP_HUMID_DATA = 0x03;
 //const UNKNOWN_DATA5 = 0x09;
 //const UNKNOWN_DATA6 = 0x05;
 
+/**
+ * Sensor status:
+ *
+ * Positive Temperature (Celsius) == 0x00
+ * High Temperature (Celsius) == 0x01
+ * Negative Temperature (Celsius) = 0xFF
+ * Inactive = 0x7F
+ */
+const SENSOR_NEGATIVE = 0xFF;
+const SENSOR_HIGH = 0x01;
+const SENSOR_INACTIVE = 0x7F;
+
 function logHex(label, data) {
 	let str = data ? data.toString('hex').replace(/([0-9a-f]{2})/g, '$1 ').replace(/((?:[0-9a-f]{2} ){16})/g, '\n$1').toUpperCase() : '';
 	console.debug(label, str);
@@ -20,13 +32,22 @@ function logHex(label, data) {
 /**
  * C = temp / 10
  *
- * @todo How does the WS-3000 handle negative numbers?
+ * When the WS-3000 hits a negative number, the first field value (rangeIndicator) becomes 0xFF and temp
+ * counts down from 256.
  *
  * @param temp
+ * @param rangeIndicator Indicates which temperature range temp is in (0-25.6C, -25.6-0C, 25.6-51.2C)
  * @returns string ##.#
  */
-const temperatureCelsius = (temp) => {
+const temperatureCelsius = (temp, rangeIndicator) => {
 	var c = temp / 10;
+
+	if (rangeIndicator == SENSOR_NEGATIVE) {
+		c = -1 * (25.6 - c);
+	} else if (rangeIndicator == SENSOR_HIGH) {
+		c += 25.6;
+	}
+
 	return c.toFixed(1);
 };
 
@@ -188,13 +209,13 @@ exports.query = (debugFlag = false) => {
 			let ret = [];
 			for (let x = 0; x < 8; x++) {
 				let pos = x * 3;
-				// It appears that ACTIVE == 0x00, INACTIVE = 0x7F.
-				let active = (data[pos + 1] !== 0x7F);
+				// It appears that Temperature+ == 0x00, Temperature- = 0xFF, Inactive = 0x7F.
+				let active = (data[pos + 1] !== SENSOR_INACTIVE);
 
 				// Add this sensor's data to the data we return.
 				ret.push({
 					active,
-					temperature: active ? temperatureCelsius(data[pos + 2]) : null,
+					temperature: active ? temperatureCelsius(data[pos + 2], data[pos + 1]) : null,
 					humidity: active ? data[pos+3] : null
 				});
 			}
