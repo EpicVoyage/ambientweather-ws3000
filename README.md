@@ -2,14 +2,22 @@
 Pull the current temperature and humidity levels for up to 8 remote sensors. Designed for Node.js.
 
 # Usage
+```shell
+npm install EpicVoyage/ambientweather-ws3000
+```
+
 ```javascript
-let ws3000 = require('ambientweather-ws3000');
-let sensors = await ws3000.query();
-for (let x = 0; x < 8; x++) {
-  if (sensors[x].active) {
-    console.info('Sensor', x + 1, 'Temperature:', sensors[x].temperature + '°C, Humidity:', sensors[x].humidity + '%');
+async function main() {
+  let ws3000 = require('ambientweather-ws3000');
+  let sensors = await ws3000.query();
+  for (let x = 0; x < 8; x++) {
+    if (sensors[x].active) {
+      console.info('Sensor', x + 1, 'Temperature:', sensors[x].temperature + '°C, Humidity:', sensors[x].humidity + '%');
+    }
   }
 }
+
+main();
 ```
 
 # Debugging
