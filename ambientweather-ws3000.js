@@ -5,12 +5,12 @@ const VENDOR_ID = 0x0483;
 const PRODUCT_ID = 0x5750;
 
 const TEMP_HUMID_DATA = 0x03;
-//const UNKNOWN_DATA1 = 0x04;
-//const UNKNOWN_DATA2 = 0x41;
-//const UNKNOWN_DATA3 = 0x06;
-//const UNKNOWN_DATA4 = 0x08;
-//const UNKNOWN_DATA5 = 0x09;
-//const UNKNOWN_DATA6 = 0x05;
+// const UNKNOWN_DATA1 = 0x04;
+// const UNKNOWN_DATA2 = 0x41;
+// const UNKNOWN_DATA3 = 0x06;
+// const UNKNOWN_DATA4 = 0x08;
+// const UNKNOWN_DATA5 = 0x09;
+// const UNKNOWN_DATA6 = 0x05;
 
 /**
  * Sensor status:
@@ -24,7 +24,7 @@ const SENSOR_NEGATIVE = 0xFF;
 const SENSOR_HIGH = 0x01;
 const SENSOR_INACTIVE = 0x7F;
 
-function logHex(label, data) {
+function logHex (label, data) {
 	let str = data ? data.toString('hex').replace(/([0-9a-f]{2})/g, '$1 ').replace(/((?:[0-9a-f]{2} ){16})/g, '\n$1').toUpperCase() : '';
 	console.debug(label, str);
 }
@@ -42,9 +42,9 @@ function logHex(label, data) {
 const temperatureCelsius = (temp, rangeIndicator) => {
 	var c = temp / 10;
 
-	if (rangeIndicator == SENSOR_NEGATIVE) {
+	if (rangeIndicator === SENSOR_NEGATIVE) {
 		c = -1 * (25.6 - c);
-	} else if (rangeIndicator == SENSOR_HIGH) {
+	} else if (rangeIndicator === SENSOR_HIGH) {
 		c += 25.6;
 	}
 
@@ -58,7 +58,7 @@ const temperatureCelsius = (temp, rangeIndicator) => {
  * @returns {Promise<any>}
  */
 exports.query = (debugFlag = false) => {
-	return new Promise(function(resolve, reject) {
+	return new Promise(function (resolve, reject) {
 		let usb = require('usb');
 
 		// Attempt to include timestamps in debug logs.
@@ -80,7 +80,7 @@ exports.query = (debugFlag = false) => {
 		// Look up the base station by known Vendor/Product IDs.
 		let baseStation = usb.findByIds(VENDOR_ID, PRODUCT_ID);
 
-		if (typeof baseStation == 'undefined') {
+		if (typeof baseStation === 'undefined') {
 			if (debugFlag) {
 				console.error('Base Station not found.');
 			}
@@ -107,7 +107,7 @@ exports.query = (debugFlag = false) => {
 				if (kernelDriverAttached) {
 					deviceInterface.attachKernelDriver();
 				}
-				//baseStation.close();
+				// baseStation.close();
 				resolve(data);
 			});
 		};
@@ -139,7 +139,7 @@ exports.query = (debugFlag = false) => {
 		 * @returns {Promise<any>}
 		 */
 		const requestInfo = (command) => {
-			return new Promise(function(resolve, reject) {
+			return new Promise(function (resolve, reject) {
 				// Handle the expected response from the WS-3000.
 				const onData = (data) => {
 					if (debugFlag) {
@@ -184,7 +184,7 @@ exports.query = (debugFlag = false) => {
 				const request = [0x7b, command, 0x40, 0x7d];
 				outEndpoint.transferType = 2;
 				if (debugFlag) {
-					logHex('transfer', new Buffer(request));
+					logHex('transfer', Buffer.from(request));
 				}
 				outEndpoint.transfer(request).on('error', (error) => {
 					if (debugFlag) {
@@ -216,10 +216,13 @@ exports.query = (debugFlag = false) => {
 				ret.push({
 					active,
 					temperature: active ? temperatureCelsius(data[pos + 2], data[pos + 1]) : null,
-					humidity: active ? data[pos+3] : null
+					humidity: active ? data[pos + 3] : null
 				});
 			}
 			resolver(ret);
+			return ret;
+		}).catch((error) => {
+			reject(error);
 		});
 	});
 };

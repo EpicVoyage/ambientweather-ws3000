@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 'use strict';
 
 const expect = require('chai').expect;
@@ -14,7 +15,10 @@ const temperatureFahrenheit = (c) => {
 };
 
 describe('Basic Test', function () {
-	it('Counts the Active Sensors', async() => {
+	// Increase the test timeout to 5 seconds. This cannot be contained in an arrow function.
+	this.timeout(5000);
+
+	it('Counts the Active Sensors', async () => {
 		let ws3000 = require('../ambientweather-ws3000');
 
 		try {
@@ -29,7 +33,7 @@ describe('Basic Test', function () {
 			}
 
 			expect(total).to.not.be.equal(0);
-		} catch(e) {
+		} catch (e) {
 			throw e;
 		}
 	});
