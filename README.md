@@ -27,3 +27,10 @@ let ws3000 = require('ambientweather-ws3000');
 let sensors = await ws3000.query(true);
 ```
 This turns on debug messages for libusb and prints all data sent or received from the WS-3000.
+
+# Installation on Raspbian (Raspberry Pi)
+You will need the git, libusb-dev and libudev-dev packages.
+
+```shell
+sudo apt-get install git libusb-dev libudev-dev
+```
