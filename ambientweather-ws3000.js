@@ -52,11 +52,103 @@ const temperatureCelsius = (temp, rangeIndicator) => {
 };
 
 /**
+ * F = C * 1.8 + 32
+ *
+ * @param c
+ * @ret Fahrenheit
+ */
+const temperatureFahrenheit = (c) => {
+	var f = c * 1.8 + 32;
+	return f.toFixed(1);
+};
+
+/**
+ * Calculate the NOAA Heat Index for a temperature.
+ *
+ * @link https://www.wpc.ncep.noaa.gov/html/heatindex_equation.shtml
+ *
+ * @param temperatureF Temperature in Fahrenheit
+ * @param relativeHumidity
+ * @returns {string}
+ */
+const heatIndex = (temperatureF, relativeHumidity) => {
+	let hi;
+
+	temperatureF = parseFloat(temperatureF);
+	relativeHumidity = parseInt(relativeHumidity, 10);
+
+	if (temperatureF >= 80) {
+		hi = -42.379 + (2.04901523 * temperatureF) + (10.14333127 * relativeHumidity) -
+				(0.22475541 * temperatureF * relativeHumidity) - (0.00683783 * temperatureF * temperatureF) -
+				(0.05481717 * relativeHumidity * relativeHumidity) +
+				(0.00122874 * temperatureF * temperatureF * relativeHumidity) +
+				(0.00085282 * temperatureF * relativeHumidity * relativeHumidity) -
+				(0.00000199 * temperatureF * temperatureF * relativeHumidity * relativeHumidity);
+
+		if ((relativeHumidity < 13) && (temperatureF >= 80) && (temperatureF <= 112)) {
+			hi -= ((13 - relativeHumidity) / 4) * Math.sqrt((17 - Math.abs(temperatureF - 95)) / 17)
+		} else if ((relativeHumidity > 85) && (temperatureF >= 80) && (temperatureF <= 87)) {
+			hi += ((relativeHumidity - 85) / 10) * ((87 - temperatureF) / 5);
+		}
+	} else {
+		hi = 0.5 * (temperatureF + 61.0 + ((temperatureF - 68.0) * 1.2) + (relativeHumidity * 0.094));
+	}
+
+	return hi.toFixed(1);
+};
+
+/**
+ * Determine the dew point for the humidity level at the current temperature.
+ *
+ * @link https://iridl.ldeo.columbia.edu/dochelp/QA/Basic/dewpoint.html
+ * @link https://www.aprweather.com/pages/calc.htm
+ *
+ * @param temperatureC Current temperature in Celsius.
+ * @param humidity Current relative humidity (0-100).
+ * @return string Dew point temperature in Celsius.
+ */
+const dewPoint = (temperatureC, humidity) => {
+	temperatureC = parseFloat(temperatureC);
+	humidity = parseInt(humidity, 10);
+
+	let Tdc = temperatureC - (14.55 + 0.114 * temperatureC) * (1 - (0.01 * humidity)) -
+			Math.pow((2.5 + 0.007 * temperatureC) * (1 - (0.01 * humidity)), 3) -
+			(15.9 + 0.117 * temperatureC) * Math.pow(1 - (0.01 * humidity), 14);
+
+	return Tdc.toFixed(1);
+};
+
+/**
+ * Break out the response section for easier testing.
+ *
+ * @param active boolean
+ * @param temperatureC temperature in Celsius
+ * @param humidity relative (0-100)
+ * @returns {{dewPointF: null, temperature: null, active: *, temperatureF: *, humidity: null, dewPoint: *, heatIndexF: *}}
+ */
+const generateResponse = (active, temperatureC, humidity) => {
+	let temperatureF = active ? temperatureFahrenheit(temperatureC) : 0;
+	let dP = active ? dewPoint(temperatureC, humidity) : 0;
+
+	// Add this sensor's data to the data we return.
+	return {
+		active,
+		temperature: active ? temperatureC : null,
+		temperatureF: active ? temperatureF : null,
+		heatIndexF: active ? heatIndex(temperatureF, humidity) : null,
+		dewPoint: active ? dP : null,
+		dewPointF: active ? temperatureFahrenheit(dP) : null,
+		humidity: active ? humidity : null
+	};
+};
+
+/**
  * Query the WS-3000 for temperature and humidity data.
  *
  * @param debugFlag boolean Defaults to false.
  * @returns {Promise<any>}
  */
+exports._generateResponse = generateResponse;
 exports.query = (debugFlag = false) => {
 	return new Promise(function (resolve, reject) {
 		let usb = require('usb');
@@ -211,13 +303,11 @@ exports.query = (debugFlag = false) => {
 				let pos = x * 3;
 				// It appears that Temperature+ == 0x00, Temperature- = 0xFF, Inactive = 0x7F.
 				let active = (data[pos + 1] !== SENSOR_INACTIVE);
+				let temperature = active ? temperatureCelsius(data[pos + 2], data[pos + 1]) : 0;
+				let humidity = active ? data[pos + 3] : 0;
 
 				// Add this sensor's data to the data we return.
-				ret.push({
-					active,
-					temperature: active ? temperatureCelsius(data[pos + 2], data[pos + 1]) : null,
-					humidity: active ? data[pos + 3] : null
-				});
+				ret[x + 1] = generateResponse(active, temperature, humidity);
 			}
 			resolver(ret);
 			return ret;
