@@ -138,7 +138,8 @@ const generateResponse = (active, temperatureC, humidity) => {
 		heatIndexF: active ? heatIndex(temperatureF, humidity) : null,
 		dewPoint: active ? dP : null,
 		dewPointF: active ? temperatureFahrenheit(dP) : null,
-		humidity: active ? humidity : null
+		humidity: active ? humidity : null,
+		lastUpdateUTC: (new Date()).getUTCDate()
 	};
 };
 
