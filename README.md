@@ -32,7 +32,7 @@ This turns on debug messages for libusb and prints all data sent or received fro
 You will need the build-essential, git, libusb-dev and libudev-dev packages.
 
 ```shell
-sudo apt-get install build-essential git libusb-dev libudev-dev
+sudo apt-get install build-essential git libusb-dev libudev-dev nodejs npm
 ```
 
 To connect to the USB port as the `pi` user, create `/etc/udev/rules.d/50-stmicro.rules` [with these contents](https://raspberrypi.stackexchange.com/a/10465/103076):
@@ -40,3 +40,20 @@ To connect to the USB port as the `pi` user, create `/etc/udev/rules.d/50-stmicr
 ```
 ATTRS{idVendor}=="0483", ATTRS{idProduct}=="5750", SUBSYSTEMS=="usb", ACTION=="add", MODE="0666", GROUP="plugdev"
 ```
+
+# Raspbian Stretch
+The node-usb driver currently requires NodeJS v10 which is unavailable
+on Raspbian Stretch.
+
+> $ cat /etc/debian_version
+> 9.13
+> $ node -v
+> v8.11.1
+
+You will need to [upgrade to Raspbian Buster](https://www.raspberrypi.org/blog/buster-the-new-version-of-raspbian/).
+
+> $ cat /etc/debian_version
+> 10.9
+> $ node -v
+> v10.24.0
+
